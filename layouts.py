@@ -47,7 +47,7 @@ fig1 = go.Figure(data=[go.Histogram(x= targets, name='Emotions')],
 
 #goBar mots frequents        
 #stopwords = nltk.corpus.stopwords.words("english")
-vect = CountVectorizer(stop_words =english)
+vect = CountVectorizer()
 X = vect.fit_transform(corpus) 
 words = vect.get_feature_names()
 wsum = np.array(X.sum(0))[0]
