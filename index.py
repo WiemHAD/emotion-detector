@@ -11,7 +11,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from app import app
-from layouts import layout1
+from layouts import layout1, layout2, layout3
 import callbacks
 from app import server
 
@@ -20,13 +20,16 @@ app.layout = html.Div(id ='app', children = [
     html.Div(id='page-content')
 ])
 
+
 @app.callback(Output('page-content', 'children'),
               Input('url', 'pathname'))
 def display_page(pathname):
     if pathname == '/':
          return layout1
+    elif pathname == '/1er_dataset':
+        return layout2
     elif pathname == '/2eme_dataset':
-         return layout2
+         return layout3
     else:
         return '404'
 

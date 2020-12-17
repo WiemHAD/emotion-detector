@@ -1,7 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Dec 15 00:08:45 2020
+.app-header {
+    height: 60px;
+    line-height: 60px;
+    border-bottom: thin lightgrey solid;
+}
 
-@author: wiem
-"""
+.app-header .app-header--title {
+    font-size: 22px;
+    padding-left: 5px;
+}

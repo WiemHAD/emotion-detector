@@ -9,14 +9,19 @@ h1{
     
 }
 img{
-    height: 60%;
-    width: 50%;
-    border-radius: 8px;
-    padding: 50px;
+   
 }
 
-table1{
-    text-align: center;
-    
-    
+Data.Table{
+    text-align: center;   
+    text-align: left;
+}
+
+a{
+     background-color: #f1f1f1;
+     display: inline;
+   list-style-type: none;
+   margin: 20px;
+   padding: 8px 8px 8px 16px;
+   border-radius: 2px;
 }
