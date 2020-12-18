@@ -36,8 +36,28 @@ import plotly.graph_objs as go
 df1 = pd.read_csv('data/emotion.csv')
 corpus = df1['Text']
 
+df2 = pd.read_csv('https://query.data.world/s/jq7lk27hbmlg2t5rf4tqoksxnrs4fl')
+df2= df2.drop(['author','tweet_id'], axis=1)
+corpus2 = df2['content']
+targets2 = df2['sentiment']
+
 def subsample(x, step=900):
     return np.hstack((x[:20], x[20::step]))
+
+def print_table1(res1):
+    # Compute mean 
+    final = {}
+    for model in res1:
+        arr = np.array(res1[model])
+        final[model] = {
+            "name" : model, 
+            "time" : arr[:, 0].mean().round(2),
+            "f1_score": arr[:,1].mean().round(3),
+            "Precision" : arr[:,2].mean().round(3),
+            "Recall" : arr[:,2].mean().round(3)
+        }
+    df4 = pd.DataFrame.from_dict(final, orient="index").round(3)
+    return df4
 
 @app.callback(
     Output('app-1-display-value', 'children'),
@@ -46,32 +66,25 @@ def display_value(value):
     return 'You have selected "{}"'.format(value)
 
 
-
+#histogramme mots frequents 1st dataset
 @app.callback(
     Output('mots_hist', 'figure'),
     Input('radio_items', 'value'))
 def make_mots_hist(value):
     if value == 'all':
-        df0 = df1
+        dfk = df1
     else:
-        df0 = df1.loc[df1.Emotion == value]
-
+        dfk = df1.loc[df1.Emotion == value]
+        
     vect = CountVectorizer(stop_words = 'english')
-    X = vect.fit_transform(corpus) 
-    words = vect.get_feature_names()
-    wsum = np.array(X.sum(0))[0]
-    ix = wsum.argsort()[::-1]
-    wrank = wsum[ix] 
-    labels = [words[i] for i in ix]
-    vect = CountVectorizer(stop_words = 'english')
-    X = vect.fit_transform(df0.Text) 
+    X = vect.fit_transform(dfk.Text) 
     words = vect.get_feature_names()
     wsum = np.array(X.sum(0))[0]
     ix = wsum.argsort()[::-1]
     wrank = wsum[ix] 
     labels = [words[i] for i in ix]
 
-    trace = go.Bar(x = subsample(labels), 
+    trace1 = go.Bar(x = subsample(labels), 
                    y = subsample(wrank),
                    marker = dict(color = 'rgba(255, 174, 255, 0.5)',
                    line = dict(color ='rgb(0,0,0)',width =1.5)))
@@ -79,29 +92,76 @@ def make_mots_hist(value):
                     xaxis_title_text = 'Word rank',
                     yaxis_title_text = 'word frequency')
                   
-    figure = go.Figure(data = trace, layout = layout)
+    figure = go.Figure(data = trace1, layout = layout)
+    return figure
+
+
+
+
+@app.callback(
+    Output('mots_hist2', 'figure'),
+    Input('radio_items2', 'value'))
+def make_mots_hist2(value):
+    if value == 'all':
+        dfw = df2
+    else:
+        dfw = df2.loc[df2['sentiment'] == value]
+        
+    vect = CountVectorizer(stop_words = 'english')
+    X = vect.fit_transform(dfw['content']) 
+    words = vect.get_feature_names()
+    wsum = np.array(X.sum(0))[0]
+    ix = wsum.argsort()[::-1]
+    wrank = wsum[ix] 
+    labels = [words[i] for i in ix]
+
+    trace2 = go.Bar(x = subsample(labels), 
+                   y = subsample(wrank),
+                   marker = dict(color = 'rgba(255, 174, 255, 0.5)',
+                   line = dict(color ='rgb(0,0,0)',width =1.5)))
+    layout = go.Layout(
+                    xaxis_title_text = 'Word rank',
+                    yaxis_title_text = 'word frequency')
+                  
+    figure = go.Figure(data = trace2, layout = layout)
     return figure
 
 @app.callback(
-    dash.dependencies.Output('dd-output-container', 'children'),
-    [dash.dependencies.Input('choices','value')]
-    )
-def update_date_dropdown(choices):
-        return [{'label':'Data Set from Kaggle', 'value':'1st'},
-                 {'label':'Data Set from Data.World', 'value':'2nd'},
-                 {'label':'Global Data Set', 'value':'global'}]
-    
+     Output('dd-output-container','children'),
+     Input('choices','value'))
 def set_display_children(selected_value):
     if selected_value =='1st':
-        return 'performances_premier_Dataset'
+        filename1='res1.joblib'
+        with open(filename1, 'rb') as f1:
+            pickles1 = print_table1(pickle.load(f1))
+            table1=dash_table.DataTable(style_cell={'text-align': 'center','margin':'auto','width': '50px'},
+                                       id='performances_premier_Dataset',
+                                       columns=[{"name": i, "id": i} for i in pickles1.columns],
+            data=pickles1.to_dict('records'), 
+            editable=True), 
+            
+            return table1
+
     elif selected_value =='2nd':
-        return 'performances_deuxieme_Dataset'
-    elif selected_value =='global':
-        return 'performances_global_Dataset'
-    else:
-        return 'you have selected {} option'.format(selected_value)
-
-
+        filename2='res2.joblib'
+        with open(filename2, 'rb') as f1:
+            pickles2 = print_table1(pickle.load(f1))
+            table2=dash_table.DataTable(style_cell={'text-align': 'center','margin':'auto','width': '50px'},
+                                 id='performances_deuxieme_Dataset',
+                                 columns=[{"name": i, "id": i} for i in pickles2.columns],
+                                 data=pickles2.to_dict('records'), 
+                                 editable=True),
+            return table2
+    else: 
+        filename3='res3.joblib'
+        with open(filename3, 'rb') as f1:
+            pickles3 = print_table1(pickle.load(f1))
+            table3 = dash_table.DataTable(style_cell={'text-align': 'center','margin':'auto','width': '50px'},
+                                          id='performances_global_Dataset',
+                                          columns=[{"name": i, "id": i} for i in pickles3.columns],
+                                          data=pickles3.to_dict('records'), 
+                                          editable=True),
+            return table3
 
 @app.callback(
     Output('app-2-display-value', 'children'),

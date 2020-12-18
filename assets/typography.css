@@ -1,6 +1,6 @@
 body{
-    background-color: silver;
-}
+    background-color:silver;
+    }
 h1{
     font-family: Arial;
     color: black;
@@ -8,9 +8,13 @@ h1{
     
     
 }
-img{
-   
+
+.image{
+
+    width: 300px;
+    height: 200px;
 }
+   
 
 Data.Table{
     text-align: center;   

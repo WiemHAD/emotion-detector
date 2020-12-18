@@ -33,13 +33,21 @@ import plotly.graph_objs as go
 """ import csv   """
 
 df1 = pd.read_csv('data/emotion.csv')
+df2 = pd.read_csv('https://query.data.world/s/jq7lk27hbmlg2t5rf4tqoksxnrs4fl')
+
 targets = df1['Emotion']
 corpus = df1['Text']
+
+corpus2 = df2['content']
+targets2 = df2['sentiment']
+
 list_emotions = list(df1['Emotion'].unique())
 list_emotions.append('all')
+
+
 #names = list('1er dataset', '2eme dataset', 'dataset global')
 """definition des graphs"""
-#goBar emotions
+#goBar emotions 1st data set
 fig1 = go.Figure()
 fig1 = go.Figure(data=[go.Histogram(x= targets, name='Emotions')], 
                      
@@ -47,34 +55,65 @@ fig1 = go.Figure(data=[go.Histogram(x= targets, name='Emotions')],
                    'title':'Emotions Histogram',
                    'xaxis_title_text': 'Emotions',
                    'yaxis_title_text': 'frequence'})
- 
+
+#goBar emotions 2nd data set
+fig2 = go.Figure()
+fig2 = go.Figure(data=[go.Histogram(x= targets2, name='Emotions')], 
+                     
+               layout = {
+                   'title':'Emotions Histogram',
+                   'xaxis_title_text': 'Emotions',
+                   'yaxis_title_text': 'frequence'})
+
+#goBar emotions 2st data set
+#fig3 = go.Figure()
+#fig3 = go.Figure(data=[go.Histogram(x= targets2, name='sentiment')], 
+#                     
+#               layout = {
+#                   'title':'Emotions Histogram',
+#                   'xaxis_title_text': 'sentiment',
+#                   'yaxis_title_text': 'frequence'})
+
+
+
 
 """layouts"""
+Parag = dcc.Markdown('''Construit d’après les travaux du psychologue américain Robert Plutchik, 
+             la roue des émotions est un modèle des émotions humaines et peut facilement 
+             servir à définir des personnages, ainsi que leur évolution dans une trame 
+             narrative. Est-il possible d identifier des émotions dans des phrases 
+             narratives issues de communications écrites?''')
 layout1 = html.Div(id="Nav_bar",children=[
-     html.H1('La Roue des Emotions'),
+    html.H1('La Roue des Emotions'),
     html.Nav(className = "nav-pills", children=[
-        html.A('Go to Home', className="nav-item nav-link btn", href='/'),
-        html.A('1st Data Set From Kaggle', className="nav-item nav-link btn", href='/1er_dataset'),
-        html.A('2nd Data Set World Data', className="nav-item nav-link active btn", href='/2eme_dataset'),
+        html.A('Home', className="nav-item nav-link btn", href='/'),
+        html.A('Analyse des données brutes', className="nav-item nav-link btn", href='/1er_dataset'),
+        html.A('Résultat des classifieurs', className="nav-item nav-link active btn", href='/2eme_dataset'),
         ]),
-    
+    html.H3('Contexte'),
+    Parag,
     html.Img(style={'height':'60%','width':'50%','border-radius':'8px','padding':'50px'},
              id='image_roue',
-             src=app.get_asset_url('roue.png')),])
-   
+             src=app.get_asset_url('roue.png')),
+    ]),
+
+
+
 """2eme Page"""   
 layout2= html.Div([
     html.Div(children=[
     html.Nav(className = "nav nav-pills", children=[
-        html.A('Go to Home', className="nav-item nav-link btn", href='/'),
-        html.A('1st Data Set From Kaggle', className="nav-item nav-link btn", href='/1er_dataset'),
-        html.A('2nd Data Set World Data', className="nav-item nav-link active btn", href='/2eme_dataset'),
+        html.A('Home', className="nav-item nav-link btn", href='/'),
+        html.A('Analyse des données brutes', className="nav-item nav-link btn", href='/1er_dataset'),
+        html.A('Résultat des classifieurs', className="nav-item nav-link active btn", href='/2eme_dataset'),
         ]),
     ]),
    
-      html.Div([
-          html.H2('Histogramme des mots les plus fréquents'),
+    html.Div([
+          html.H2('Distribution des Emotions dans le Premier jeux de données'),
           dcc.Graph(id= 'graph_emotion', figure = fig1),
+          
+          html.H2('Histogramme des mots les plus fréquents du Premier jeux de données'),
           dcc.Graph(id = 'mots_hist'),
           dcc.RadioItems(
               id='radio_items',
@@ -82,88 +121,59 @@ layout2= html.Div([
               value = "all",
               labelStyle={'display': 'inline-block'}),
                 ]),
+      #2nd Data Set
+          html.Div([
+          html.H2('Distribution des Emotions dans le Deuxième jeux de données'),
+          dcc.Graph(id= 'graph_emotion2', figure = fig2),
+          
+          html.H2('Histogramme des mots les plus fréquents du Deuxième jeux de données'),
+          dcc.Graph(id = 'mots_hist2'),
+          dcc.RadioItems(
+              id='radio_items2',
+              options = [{'label': k,'value': k} for k in list_emotions],
+              value = "all",
+              labelStyle={'display': 'inline-block'}),
        
-            dcc.Link('2eme Dataset', href='/2eme_dataset'),
+            dcc.Link('2eme Dataset', href='/2eme_dataset')
         
-]) 
+])
+
+])
     
 
-""" 3eme Page"""    
-def print_table1(res1):
-    # Compute mean 
-    final = {}
-    for model in res1:
-        arr = np.array(res1[model])
-        final[model] = {
-            "name" : model, 
-            "time" : arr[:, 0].mean().round(2),
-            "f1_score": arr[:,1].mean().round(3),
-            "Precision" : arr[:,2].mean().round(3),
-            "Recall" : arr[:,2].mean().round(3)
-        }
-    df4 = pd.DataFrame.from_dict(final, orient="index").round(3)
-    return df4
-
-filename1='res1.joblib'
-with open(filename1, 'rb') as f1:
-        pickles1 = print_table1(pickle.load(f1))
-    
-filename2='res2.joblib'
-with open(filename2, 'rb') as f1:
-        pickles2 = print_table1(pickle.load(f1))
-    
-filename3='res3.joblib'
-with open(filename3, 'rb') as f1:
-        pickles3 = print_table1(pickle.load(f1))
-
-     
+#3eme Page
 layout3 = html.Div([
     html.Div(children=[
     html.Nav(className = "nav nav-pills", children=[
-        html.A('Go to Home', className="nav-item nav-link btn", href='/'),
-        html.A('1st Data Set From Kaggle', className="nav-item nav-link btn", href='/1er_dataset'),
-        html.A('2nd Data Set World Data', className="nav-item nav-link active btn", href='/2eme_dataset'),
+        html.A('Home', className="nav-item nav-link btn", href='/'),
+        html.A('Analyse des données brutes', className="nav-item nav-link btn", href='/1er_dataset'),
+        html.A('Résultat des classifieurs', className="nav-item nav-link active btn", href='/2eme_dataset'),
         ]),
     ]),
 
-    html.H3('Analyse des performances'),
-#commentaire#
- html.Div([
-     dcc.Dropdown(
-         id='choices',
-         options=[{'label':'Data Set from Kaggle', 'value':'1st'},
-                 {'label':'Data Set from Data.World', 'value':'2nd'},
-                 {'label':'Global Data Set', 'value':'global'}],
-        value='1st'),
-     html.Hr(),
-     html.Div(id='dd-output-container', children=[                
-                  
+    html.H1('Analyse des performances'),
 
-    dash_table.DataTable(style_cell={'text-align': 'center','margin':'auto','width': '50px'},
-        id='performances_premier_Dataset',
-        columns=[{"name": i, "id": i} for i in pickles1.columns],
-        data=pickles1.to_dict('records'), 
-       editable=True),
+
+html.Div([
+    dcc.Dropdown(id='choices',
+    options=[
+        {'label':'Data Set from Kaggle','value':'1st'},
+        {'label':'Data Set from Data.World','value':'2nd'},
+        {'label':'Global Data Set','value':'global'}
+        ]),
+              html.Hr(),
+              html.Div(id='dd-output-container')]),
+
+    html.H3(['Analyse des Performances des différents classifieurs']),
+    html.P([
+        html.Strong('1er data set:'),' Les résultats des 5 classifieurs donnent des score f1 compris entre 0,855 et 0.9, ces résultats efficaces sont expliqués essentiellement par un jeux de données propre. Au niveau des temps d éxécution, on remarque que l éxécution de la regression logistique est plus longue. A priori, cela est dû à son fonctionnement basé sur des classification binaires.'
+        ]),
+    html.P([    
+        html.Strong('2eme data set:'),'Les Performances du deuxième jeux de données sont moins bonnes que celles du premier essentiellement à cause de la nature de ce dernier. En effet, le data set issue de data world est composé de vrais tweet, avec plusieurs classes (13 emotions différentes) la frontière entre les émotions est très fine ce qui rend la prédiction plus difficile pour un model.',
+        ]),
+    html.P([  
+        html.Strong('Data set global:'),'On remarque que la concaténation de 2 jeux de données permet d améliorer les performances par rapport à celles du deuxieme jeux de données, cependant le temps d éxécution est nettement plus important à cause de la taille du fichié concaténé. On observe également que le classifier SGD fournis des meilleurs rélsultat en moins de temps que les autres models.'
+       ])
+        ])
     
-    
-     dash_table.DataTable(style_cell={'text-align': 'center','margin':'auto','width': '50px'},
-        id='performances_deuxieme_Dataset',
-        columns=[{"name": i, "id": i} for i in pickles2.columns],
-        data=pickles2.to_dict('records'), 
-       editable=True),
-     
-     
-      dash_table.DataTable(style_cell={'text-align': 'center','margin':'auto','width': '50px'},
-        id='performances_global_Dataset',
-        columns=[{"name": i, "id": i} for i in pickles3.columns],
-        data=pickles3.to_dict('records'), 
-       editable=True),
-    #style_cell={"fontFamily": "Arial", "size": 10, 'textAlign': 'left'}
-])]),   
-    
-   html.Div([
-        dcc.Link('Go to Home Page', href='/')]),
-    
-    html.Div(id="app-2-display-value")  
-    
-    ])
+        
